@@ -1,0 +1,35 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <link rel="stylesheet" href="bloodlog.css">
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="menu.js"></script>
+    <script src="Settings.js"></script>
+    <title>Blodsukker Logger</title>
+</head>
+<script>
+
+function init() {
+    Settings.load()
+    token_input.value = Settings.token
+    insertMenu(menu_div)
+}
+
+function tokenOnInput(value) {
+    Settings.token = value
+    Settings.save()
+}
+
+</script>
+<body onload="init()">
+    <div class="center_div">
+        <div id="menu_div"></div>
+        <h2>Blodsukker Logger</h2>
+        <p>Token</p>
+        <input name="token" id="token_input" oninput=tokenOnInput(this.value) type="text" required>
+    </div>
+</body>
+</html>

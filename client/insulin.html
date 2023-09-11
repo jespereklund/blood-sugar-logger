@@ -1,0 +1,60 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <link rel="stylesheet" href="bloodlog.css">
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="menu.js"></script>
+    <script src="Settings.js"></script>
+    <title>Insulin Stikplan</title>
+</head>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    init();
+})
+
+async function init() {
+    Settings.load()
+    getSpotImage()
+    var menu = document.getElementById("menu")
+    insertMenu(menu)
+}
+
+async function getSpotImage() {
+    const url = new URL("getSpotOffset.php", Settings.BASE_URL)
+    const response = await fetch(url.href)
+    const data = await response.json()
+    const offset = data.offset
+
+    const now = new Date()
+    const fullDaysSinceEpoch = Math.floor(now/8.64e7) - 7
+    const currentCircle = 1 + (offset + fullDaysSinceEpoch) % 21
+    const imgFile = "img/insulincharts/insulinchart_" + currentCircle + ".png"
+    img.src = imgFile
+}
+
+async function skip_clicked() {
+    const url = new URL("skipInsulinSpot.php", Settings.BASE_URL)
+    const response = await $.ajax({url: url, type: "POST", data: {token : Settings.token}})
+    if ( response == "success") {
+        getSpotImage()
+    } else {
+        alert(response)
+        return;
+    }
+}
+</script>
+<body>
+    <div class="center_div">
+        <div id="menu"></div>
+        <h2>Insulin stikplan, 1 stik dagligt</h2>
+        <div>
+            <img id="img" width="600" height="1000" >
+            <br><br>
+            <input type="button" onclick="skip_clicked()" value="Skift spot" >
+        </div>
+    </div>
+</body>
+</html>

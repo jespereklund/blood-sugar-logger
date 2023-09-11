@@ -1,0 +1,107 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <link rel="stylesheet" href="bloodlog.css">
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="menu.js"></script>
+    <script src="Settings.js"></script>
+    <title>Blodsukker Log</title>
+</head>
+<script>
+
+function init() {
+    insertMenu(menu_div)
+    loadDataTable()
+}
+
+async function loadDataTable() {
+    const rowsPerPage = 40
+    const url = new URL("getNumberOfRowsLog.php", Settings.BASE_URL)
+
+    const numberOfRows = await $.ajax(url.href)
+    const numberOfPages = Math.ceil(numberOfRows / rowsPerPage)
+
+    const queryString = window.location.search
+    const urlParams = new URLSearchParams(queryString)
+    var page = 1
+    if (!urlParams.has('page')) {
+        window.location.href = "log.html?page=" + numberOfPages
+    } else {
+        page = urlParams.get('page')
+    }
+
+    createPagesLinks(numberOfPages, page)
+
+    const pageFirstResult = (page-1) * rowsPerPage
+    loadData(pageFirstResult, rowsPerPage)
+}
+
+async function loadData(pageFirstResult, rowsPerPage) {
+    const url = new URL("getLog.php", Settings.BASE_URL)
+    var search_params = url.searchParams
+    search_params.append("pageFirstResult", pageFirstResult)
+    search_params.append("rowsPerPage", rowsPerPage)
+    search_params.append("direction", "asc")
+    data = await $.ajax(url.href)
+    loadTable(data)
+}
+
+function loadTable(dataset) {
+    var oldDay = 0
+    var currentClass = "bright"
+    const col = ['datetime', 'note', 'bloodsucker']
+    for (var i = 0; i < dataset.length; i++) {
+        var day = (dataset[i][col[0]]).substring(8,10)
+        tr = dataTable.insertRow(-1)
+        if (day != oldDay) {
+            oldDay = day;
+            currentClass = (currentClass == "bright") ? "dark" : "bright"
+        } 
+        tr.className = currentClass
+
+        dataset[i][col[0]] = (dataset[i][col[0]]).substring(0,16)
+        dataset[i][col[2]] = parseFloat((dataset[i][col[2]])).toFixed(1)
+
+        for (var j = 0; j < col.length; j++) {
+            var tabCell = tr.insertCell(-1)
+            tabCell.innerHTML = dataset[i][col[j]]
+            if (j==2) {
+                tabCell.className = "right"
+            }
+        }
+    }
+}
+
+function createPagesLinks(numberOfPages, page) {
+    for (var i=0; i<numberOfPages; i++) {
+        var newA = document.createElement('a')
+        if (i !== parseInt(page)-1) {
+            newA.setAttribute('href',"log.html?page="+(i+1))
+        }
+        newA.innerHTML = (i+1)
+        page_links.appendChild(newA)
+        
+        var newSpan = document.createElement('span')
+        newSpan.innerHTML = " "
+        page_links.appendChild(newSpan)
+    }
+}
+</script>
+<body onload="init()">
+    <div class="center_div">
+        <div id="menu_div"></div>
+        <h2>Blodsukker Log</h2>
+        <table id="dataTable">
+            <tr>
+                <th><b>Dato og tid</b></th>
+                <th><b>Note</b></th>
+                <th><b>Blodsukker</b></th>
+            </tr>
+        </table>
+        <div class="pagesbar" id="page_links"></div>
+    </div>
+</body>
+</html>

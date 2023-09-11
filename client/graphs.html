@@ -1,0 +1,302 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <link rel="stylesheet" href="bloodlog.css">
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="menu.js"></script>
+    <script src="Settings.js"></script>
+    <title>Blodsukker Log</title>
+</head>
+<body onload="init()">
+<script>
+
+function init() {
+    initPages()
+    insertMenu(div_menu)
+}
+
+async function initPages() {
+
+    /*
+    const rowsPerPage = 40
+    const url = new URL("getNumberOfRowsDailyAvg.php", Settings.BASE_URL)
+    const numberOfRows = await $.ajax(url.href)
+    const numberOfPages = Math.ceil(numberOfRows / rowsPerPage)
+    
+    const queryString = window.location.search
+    const urlParams = new URLSearchParams(queryString)
+    var page = 1
+    if (!urlParams.has('page')) {
+        window.location.href = "dashboard.html?page=" + numberOfPages
+    } else {
+        page = urlParams.get('page')
+    }
+
+    createPagesLinks(numberOfPages, page)
+
+    const pageFirstResult = (page-1) * rowsPerPage
+    */
+    loadData()
+}
+
+async function loadData() {
+
+    /* Load ugentligt blodsukker gennemsnit */
+    var url = new URL("getWeeklyAvgList.php", Settings.BASE_URL)
+    var data = await $.ajax(url.href);
+    loadWeeklyChart(data)
+
+    /* Load dagligt blodsukker gennemsnit */
+    var url = new URL("getDailyAvgList.php", Settings.BASE_URL)
+    var data = await $.ajax(url.href);
+    loadDailyChart(data)
+
+    /* Load seneste 100 blodsukker målinger */
+    var url = new URL("getLog.php", Settings.BASE_URL)
+    var search_params = url.searchParams
+    search_params.append("pageFirstResult", 0)
+    search_params.append("rowsPerPage", 100)
+    search_params.append("direction", "desc")
+    var data = await $.ajax(url.href);
+    loadLatestChart(data)
+
+    /* Load insulin enheder */
+    var url = new URL("getInsulinUnitsLog.php", Settings.BASE_URL)
+    var data = await $.ajax(url.href);
+    loadInsulinUnitsChart(data)
+
+    
+    /*
+    var url = new URL("getDailyAvgList.php", Settings.BASE_URL)
+    var search_params = url.searchParams
+    search_params.append("pageFirstResult", pageFirstResult)
+    search_params.append("rowsPerPage", rowsPerPage)
+    var data = await $.ajax(url.href)
+    loadTable(data)
+    */
+}
+
+/*
+function createPagesLinks(numberOfPages, page) {
+    for (var i=0; i<numberOfPages; i++) {
+        var newA = document.createElement('a')
+        if (i !== parseInt(page)-1) {
+            newA.setAttribute('href',"dashboard.html?page="+(i+1))
+        }
+        newA.innerHTML = (i+1)
+        page_links.appendChild(newA)
+        
+        var newSpan = document.createElement('span')
+        newSpan.innerHTML = " "
+        page_links.appendChild(newSpan)
+    }
+}
+*/
+
+/* Ugentligt gennemsnit */
+function loadWeeklyChart(data) {
+    var timeFormat = 'YYYY-MM-DD'
+    var ctx = canvas3.getContext('2d')
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.dates,
+            datasets: [{
+                fill: false,
+                borderColor: '#0000ff',
+                label: 'min',
+                data: data.min,
+                borderWidth: 1,
+                hidden: true
+            },{
+                fill: false,
+                borderColor: '#ff0000',
+                label: 'avg',
+                data: data.avg,
+                borderWidth: 1
+            },{
+                fill: false,
+                borderColor: '#00ff00',
+                label: 'max',
+                data: data.max,
+                borderWidth: 1,
+                hidden: true
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time:       {
+                        format: timeFormat
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    })
+}
+
+/* Dagligt Gennemsnit */
+function loadDailyChart(data) {
+    var timeFormat = 'YYYY-MM-DD'
+    var ctx = canvas.getContext('2d')
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.dates,
+            datasets: [{
+                fill: false,
+                borderColor: '#0000ff',
+                label: 'min',
+                data: data.min,
+                borderWidth: 1,
+                hidden: true
+            },{
+                fill: false,
+                borderColor: '#ff0000',
+                label: 'avg',
+                data: data.avg,
+                borderWidth: 1
+            },{
+                fill: false,
+                borderColor: '#00ff00',
+                label: 'max',
+                data: data.max,
+                borderWidth: 1,
+                hidden: true
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time:       {
+                        format: timeFormat
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    })
+}
+
+/* Seneste 100 målinger */
+function loadLatestChart(data) {
+    var values = new Array();
+    var dates = new Array();
+
+    data.forEach(obj => {
+        values.push(obj.bloodsucker)
+        dates.push(obj.datetime)
+    })
+    
+    var timeFormat = 'YYYY-MM-DD hh:mm:ss'
+    var ctx2 = canvas2.getContext('2d')
+    var myChart = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                fill: false,
+                borderColor: '#0000ff',
+                label: 'blodsukker',
+                data: values,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time:       {
+                        format: timeFormat
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    })
+}
+
+/* Insuling enheder */
+function loadInsulinUnitsChart(data) {
+    var values = new Array();
+    var dates = new Array();
+
+    data.forEach(obj => {
+        values.push(obj.insulin_units)
+        dates.push(obj.datetime)
+    })
+
+    //add today with latest value
+    values.push(values[values.length-1])
+    dates.push(new Date().toISOString().split('T')[0] + ' 00:00:00')
+    
+    var timeFormat = 'YYYY-MM-DD'
+    var ctx4 = canvas4.getContext('2d')
+    var myChart = new Chart(ctx4, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                fill: false,
+                borderColor: '#0000ff',
+                label: 'insulin_units',
+                data: values,
+                borderWidth: 1,
+                steppedLine: true
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time:       {
+                        format: timeFormat
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    })
+}
+
+</script>
+    <div class="center_div">
+        <div id="div_menu"></div>
+        <div id="canvas_div">
+            <h2>Ugentligt Gennemsnit</h2>
+            <canvas id="canvas3" width="600" height="400"></canvas>
+            <h2>Dagligt Gennemsnit</h2>
+            <canvas id="canvas" width="600" height="400"></canvas>
+            <h2>Seneste 100 målinger</h2>
+            <canvas id="canvas2" width="600" height="400"></canvas>
+            <h2>Insulin enheder</h2>
+            <canvas id="canvas4" width="600" height="400"></canvas>
+        </div>
+        <div id="page_links">
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.js"></script>
+    </div>
+</body>
+</html>

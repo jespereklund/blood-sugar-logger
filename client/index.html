@@ -1,0 +1,47 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <link rel="stylesheet" href="bloodlog.css">
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="main.js"></script>
+    <script src="menu.js"></script>
+    <script src="Settings.js"></script>
+    <title>Blodsukker Logger</title>
+</head>
+<script>
+
+</script>
+<body onload="init()">
+    <div class="center_div">
+        <div id="menu_div"></div>
+        <h2>Blodsukker Logger</h2>
+        <form id="log_form" method="POST">
+            <p>Prik finger og side</p>
+            <img id="fingerImage" class="img" width="600" height="130">
+            <br><br>
+            <input type="button" onclick="skip_clicked()" value="Skift fingerspot" >
+            <p>Dato og tid</p>
+            <input name="datetime" id="datetime_input" type="datetime-local" useCurrent="true" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}" required>
+            <input onclick="now_clicked(this.checked)" type="checkbox" id="now_checkbox" name="now" value="now">
+            <label for="now">Now</label>
+            <p>Note</p>
+            <input name="note" id="note_input" type="text" >
+            <p>Blodsukker</p>
+            <input name="bloodsucker" id="bloodsucker_input" type="text" pattern="[+-]?([0-9]*[.,])?[0-9]+" required>
+            <br><br>
+            <input class="but" type="submit" value="Log måling">
+        </form>
+        <p>Seneste 20 målinger:</p>
+        <table id="dataTable">
+            <tr>
+                <th>Dato og tid</th>
+                <th>Note</th>
+                <th>Blodsukker</th>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
